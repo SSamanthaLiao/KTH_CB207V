@@ -196,6 +196,10 @@
         select(V39, V7, V19, V6, V13)
       print(top_5_scores, n=35)
       
+
+    ```
+11. De novo motif analyses with MEME-CHIP (R and Linux) 
+    ```R
       # MEME analysis
       
       summitPM50 = read.csv("jund.igg.summitcoord.txt",header = F, sep = "\t")
@@ -210,16 +214,6 @@
         mutate(qEnd = summitCoordinate+ 50) %>% select(-summitCoordinate)
         
       write.table(meme, "jund_summitPM50_top_1000.txt", col.names=F, row.names=F, quote=F, sep="\t")
-    ```
-11. De novo motif analyses with MEME-CHIP (R and Linux) 
-    ```R
-    summitPM50 = read.csv("jund.igg.summitcoord.txt",header = F, sep = "\t")
-    names(summitPM50) = c("chr","summitCoordinate","summitCoordinate.1","peakStart","peakEnd","name",
-                      "score","strand","fold_change","pvalue","qvalue","summit")
-    meme = summitPM50 %>% select(chr,summitCoordinate) %>%
-       mutate(qStart = summitCoordinate -50) %>%
-       mutate(qEnd = summitCoordinate+ 50) %>% select(-summitCoordinate)
-    write.table(meme, "jund_summitPM50.txt", col.names=F, row.names=F, quote=F, sep="\t")
     ```
     ```bash
     bedtools getfasta -fi chm13v2.0.fa -bed jund_summitPM50.txt > jund_summitPM50.fasta
