@@ -117,36 +117,99 @@
         legend.title = element_text(family = 'Times',size = 10,face = 'bold',vjust = 0.95),
         legend.position = 'right')+
      scale_x_continuous(breaks = seq(round(min(KEGG$log),digits = 0)-1,round(max(KEGG$log),digits = 0),10))  
-   ggsave(p,filename = "GO_BP.pdf",width = 9,height = 9,dpi = 300) 
+   
    ```
 10. Functional genomic regions analysis (Linux and R)
     ```bash
     bedtools intersect -loj -wa -a jund_distance_to_TSS.bed -b chm13v2_functionalGenomicRegions_withRegionName.bed > jund_at_functional_genomic_regions.bed
     ```
     ```R
-    fGRs = read.table("jund_at_functional_genomic_regions.bed", sep="\t")
-    names(fGRs)=c("chr_fGR", "start_fGR", "end_fGR", "val", "chm13_chr", "strand", "start", "end", "color", "region")
-    fGRs$regionOrder=7
-    fGRs$regionOrder<-ifelse(fGRs$region=="promoter", 1, fGRs$regionOrder)
-    fGRs$regionOrder<-ifelse(fGRs$region=="enhancer", 2, fGRs$regionOrder)
-    fGRs$regionOrder<- ifelse(fGRs$region=="divergent", 3,fGRs$regionOrder)
-    fGRs$regionOrder<-ifelse(fGRs$region=="geneBody", 4, fGRs$regionOrder)
-    fGRs$regionOrder<-ifelse(fGRs$region=="CPS", 5, fGRs$regionOrder)
-    fGRs$regionOrder<-ifelse(fGRs$region=="TW", 6, fGRs$regionOrder)
-    fGRs$region<-ifelse(fGRs$regionOrder==7, "untranscribed", fGRs$region)
-    fGRs = fGRs[order(fGRs$regionOrder),] fGRs = fGRs[!duplicated(fGRs$name),]
-    
-    fGRs$rgbCol ="grey"
-    fGRs$rgbCol <- ifelse(fGRs$region=="promoter","#f38400", fGRs$rgbCol)
-    fGRs$rgbCol <- ifelse(fGRs$region=="enhancer","#73d47a", fGRs$rgbCol)
-    fGRs$rgbCol <- ifelse(fGRs$region=="divergent","#b23bd4", fGRs$rgbCol)
-    fGRs$rgbCol <- ifelse(fGRs$region=="geneBody","#000000", fGRs$rgbCol)
-    fGRs$rgbCol <- ifelse(fGRs$region=="CPS","#67c8f9", fGRs$rgbCol)
-    fGRs$rgbCol <- ifelse(fGRs$region=="TW","#ff3662", fGRs$rgbCol)
-    fGRs$region = factor(fGRs$region, c("promoter", "enhancer", "divergent", "geneBody", "CPS", "TW", "untranscribed"))
-    boxplot(fGRs$score~fGRs$region, col=unique(fGRs$rgbCol))
-    barchart(region ~ pct, stack=TRUE, data = a, col=unique(fGRs$rgbCol), border=rgb(0.2,0.2,0.2,0))
-    barchart(a$pct, group=a$region, stack=TRUE,col=unique(fGRs$rgbCol), border=rgb(0.2,0.2,0.2,0))
+    # Functional genomic region plots
+      
+      jund_fGRs = read.table("6_jund_at_functional_genomic_regions.bed", sep="\t", header = F)
+      
+      jund_fGRs$regionOrder=7
+      jund_fGRs$regionOrder<-ifelse(jund_fGRs$V39=="promoter", 1, jund_fGRs$regionOrder)
+      jund_fGRs$regionOrder<-ifelse(jund_fGRs$V39=="enhancer", 2, jund_fGRs$regionOrder)
+      jund_fGRs$regionOrder<-ifelse(jund_fGRs$V39=="divergent", 3, jund_fGRs$regionOrder)
+      jund_fGRs$regionOrder<-ifelse(jund_fGRs$V39=="geneBody", 4, jund_fGRs$regionOrder)
+      jund_fGRs$regionOrder<-ifelse(jund_fGRs$V39=="CPS", 5, jund_fGRs$regionOrder)
+      jund_fGRs$regionOrder<-ifelse(jund_fGRs$V39=="TW", 6, jund_fGRs$regionOrder)
+      jund_fGRs$V39 <-ifelse(jund_fGRs$regionOrder==7, "untranscribed", jund_fGRs$V39)
+      
+      jund_fGRs = jund_fGRs[order(jund_fGRs$regionOrder),]
+      jund_fGRs = jund_fGRs[!duplicated(jund_fGRs$V6),]
+      
+      jund_fGRs$rgbCol ="grey"
+      jund_fGRs$rgbCol <- ifelse(jund_fGRs$V39=="promoter","#f38400", jund_fGRs$rgbCol)
+      jund_fGRs$rgbCol <- ifelse(jund_fGRs$V39=="enhancer","#73d47a", jund_fGRs$rgbCol)
+      jund_fGRs$rgbCol <- ifelse(jund_fGRs$V39=="divergent","#b23bd4", jund_fGRs$rgbCol)
+      jund_fGRs$rgbCol <- ifelse(jund_fGRs$V39=="geneBody","yellow", jund_fGRs$rgbCol)
+      jund_fGRs$rgbCol <- ifelse(jund_fGRs$V39=="CPS","#67c8f9", jund_fGRs$rgbCol)
+      jund_fGRs$rgbCol <- ifelse(jund_fGRs$V39=="TW","#ff3662", jund_fGRs$rgbCol)
+      
+      jund_fGRs$region = factor(jund_fGRs$V39, c("promoter", "enhancer", "divergent", "geneBody", "CPS", "TW", "untranscribed"))
+      
+      a = as.data.frame(table(jund_fGRs$V39)/dim(jund_fGRs)[1]*100)
+      names(a) =c("region", "pct")
+      
+      fGRs_score_plot = boxplot(jund_fGRs$V7~jund_fGRs$V39, col=unique(jund_fGRs$rgbCol), log = "y", xlab = "JUND region", ylab ="score")
+      
+      fGRs_percentage_plot = ggplot(a, aes(x = "", y = pct, fill = region)) +
+        geom_bar(stat = "identity", position = position_dodge(width = 1)) +
+        labs(x = "Genomic region", y = "Percentage") + 
+        scale_fill_manual(values = unique(jund_fGRs$rgbCol)) +
+        theme_minimal() +
+        ylim(0, 50)
+      
+      # Selecting top 1000 scores
+      
+      top_scores_fGRs <- jund_fGRs %>%
+        top_n(1000, V7) %>% arrange(desc(V7))
+      
+      a_top_1000 = as.data.frame(table(top_scores_fGRs$V39)/dim(top_scores_fGRs)[1]*100)
+      names(a_top_1000) =c("region", "pct")
+      
+      fGRs_score_plot_top = boxplot(top_scores_fGRs$V7~top_scores_fGRs$V39, col=unique(jund_fGRs$rgbCol), log = "y", xlab = "JUND region", ylab ="score")
+      
+      fGRs_percentage_plot_top = ggplot(a_top_1000, aes(x = "", y = pct, fill = region)) +
+        geom_bar(stat = "identity", position = position_dodge(width = 1)) +
+        labs(x = "Genomic region", y = "Percentage") + 
+        scale_fill_manual(values = unique(jund_fGRs$rgbCol)) +
+        theme_minimal() +
+        ylim(0, 50)
+      
+      library(gridExtra)
+      grid.arrange(fGRs_percentage_plot, fGRs_percentage_plot_top, ncol = 2)
+      
+      # Top 5 scored peaks per functional genomic region
+      
+      top_scores <- jund_fGRs %>%
+        group_by(V39) %>%
+        slice(which.max(V7)) %>%
+        select(V39, top_score = V7, V19)
+      
+      top_5_scores <- jund_fGRs %>%
+        group_by(V39) %>%
+        top_n(5, V7) %>%
+        arrange(V39, desc(V7)) %>%
+        select(V39, V7, V19, V6, V13)
+      print(top_5_scores, n=35)
+      
+      # MEME analysis
+      
+      summitPM50 = read.csv("jund.igg.summitcoord.txt",header = F, sep = "\t")
+      names(summitPM50) = c("chr","summitCoordinate","summitCoordinate.1","peakStart","peakEnd","name",
+                            "score","strand","fold_change","pvalue","qvalue","summit")
+      
+      top_scores <- summitPM50 %>%
+        top_n(1000, score) %>% arrange(desc(score))
+      
+      meme = top_scores %>% select(chr,summitCoordinate) %>%
+        mutate(qStart = summitCoordinate -50) %>%
+        mutate(qEnd = summitCoordinate+ 50) %>% select(-summitCoordinate)
+        
+      write.table(meme, "jund_summitPM50_top_1000.txt", col.names=F, row.names=F, quote=F, sep="\t")
     ```
 11. De novo motif analyses with MEME-CHIP (R and Linux) 
     ```R
